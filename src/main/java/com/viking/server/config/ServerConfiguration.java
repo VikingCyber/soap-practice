@@ -1,4 +1,4 @@
-package com.viking.soapService.config;
+package com.viking.server.config;
 
 import java.util.Collections;
 
@@ -21,7 +21,7 @@ public class ServerConfiguration {
         messageDispatcherServlet.setApplicationContext(context);
         messageDispatcherServlet.setTransformWsdlLocations(true);
         
-        return new ServletRegistrationBean<>(messageDispatcherServlet, "/ws/*");
+        return new ServletRegistrationBean<>(messageDispatcherServlet, "/mtom-server/*");
     }
 
     @Bean

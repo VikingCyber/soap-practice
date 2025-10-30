@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<schema xmlns="http://www.w3.org/2001/XMLSchema" 
+        xmlns:xmime="http://www.w3.org/2005/05/xmlmime"
+        targetNamespace="http://viking/soap/mtom/lab2025"
+        elementFormDefault="qualified">
+
+    <element name="StoreContentRequest">
+        <complexType>
+            <sequence>
+                <element name="Name" type="string"/>
+                <element name="Content" type="base64Binary"
+                         xmime:expectedContentTypes="application/octet-stream"/>
+            </sequence>
+        </complexType>
+    </element>
+    
+    <element name="StoreContentResponse">
+        <complexType>
+            <sequence>
+                <element name="Message" type="string"/>
+            </sequence>
+        </complexType>
+    </element>
+    
+    <element name="LoadContentRequest">
+        <complexType>
+            <sequence>
+                <element name="Name" type="string"/>
+            </sequence>
+        </complexType>
+    </element>
+    
+    <element name="LoadContentResponse">
+        <complexType>
+            <sequence>
+                <element name="Name" type="string"/>
+                <element name="Content" type="base64Binary"
+                         xmime:expectedContentTypes="application/octet-stream"/>
+            </sequence>
+        </complexType>
+    </element>
+</schema>

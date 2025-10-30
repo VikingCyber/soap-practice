@@ -46,11 +46,68 @@
 		</dependency>
 	</dependencies>
 
+	<profiles>
+		<profile>
+			<id>server</id>
+			<properties>
+				<main.class>com.viking.server.SoapServiceApplication</main.class>
+			</properties>
+		</profile>
+		<profile>
+			<id>client</id>
+			<properties>
+				<main.class>com.viking.client.SaajMtomClient</main.class>
+			</properties>
+		</profile>
+	</profiles>
+
 	<build>
 		<plugins>
 			<plugin>
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
+				<configuration>
+					<mainClass>${main.class}</mainClass>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>com.evolvedbinary.maven.jvnet</groupId>
+				<artifactId>jaxb30-maven-plugin</artifactId>
+				<executions>
+					<execution>
+						<goals>
+							<goal>generate</goal>
+						</goals>
+					</execution>
+				</executions>
+				<configuration>
+					<schemaLanguage>WSDL</schemaLanguage>
+					<generatePackage>org.springframework.ws.samples.mtom.schema</generatePackage>
+					<schemas>
+						<schema>
+							<url>${wsdl}</url>
+						</schema>
+					</schemas>
+					<addCompileSourceRoot>true</addCompileSourceRoot>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>build-helper-maven-plugin</artifactId>
+				<executions>
+					<execution>
+						<id>add-source</id>
+						<phase>process-sources</phase>
+						<goals>
+							<goal>add-source</goal>
+						</goals>
+						<configuration>
+							<sources>
+								<source>target/generated-sources/xjc</source>
+							</sources>
+						</configuration>
+					</execution>
+				</executions>
 			</plugin>
 		</plugins>
 	</build>
