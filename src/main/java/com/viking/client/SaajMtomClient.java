@@ -40,18 +40,24 @@ public class SaajMtomClient extends WebServiceGatewaySupport{
     private static final Logger logger = LoggerFactory.getLogger(SaajMtomClient.class);
     private ObjectFactory objectFactory = new ObjectFactory();
     private StopWatch stopWatch = new StopWatch(ClassUtils.getShortName(getClass()));
+    
     public SaajMtomClient(SaajSoapMessageFactory messageFactory) {
         super(messageFactory);
     }
 
     public void storeContent() {
-        StoreContentRequest storeContentRequest = this.objectFactory.createStoreContentRequest();
-        storeContentRequest.setName("SampleFile");
-        storeContentRequest.setContent(new DataHandler(Thread.currentThread().getContextClassLoader().getResource("Normandi.jpg")));
-        this.stopWatch.start("store");
-        getWebServiceTemplate().marshalSendAndReceive(storeContentRequest);
-        this.stopWatch.stop();
-        logger.info(this.stopWatch.prettyPrint());
+        try {
+            StoreContentRequest storeContentRequest = this.objectFactory.createStoreContentRequest();
+            storeContentRequest.setName("SampleFile");
+            storeContentRequest.setContent(new DataHandler(Thread.currentThread().getContextClassLoader().getResource("Normandi.jpg")));
+            this.stopWatch.start("store");
+            getWebServiceTemplate().marshalSendAndReceive(storeContentRequest);
+            this.stopWatch.stop();
+            logger.info(this.stopWatch.prettyPrint());
+        } catch (Exception e) {
+            logger.error("Failed to store content", e);
+        }
+
     }
 
     public void loadContent() throws IOException {
