@@ -16,6 +16,7 @@ import org.springframework.ws.wsdl.wsdl11.SimpleWsdl11Definition;
 
 @Configuration
 public class ServerConfiguration {
+
     @Bean
     ServletRegistrationBean<?> webServiceRegistration(@NonNull ApplicationContext context) {
         MessageDispatcherServlet messageDispatcherServlet = new MessageDispatcherServlet();

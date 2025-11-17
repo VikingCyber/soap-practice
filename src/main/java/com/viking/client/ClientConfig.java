@@ -3,6 +3,7 @@ package com.viking.client;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.oxm.jaxb.Jaxb2Marshaller;
+import org.springframework.ws.soap.SoapVersion;
 import org.springframework.ws.soap.saaj.SaajSoapMessageFactory;
 
 @Configuration
@@ -19,8 +20,11 @@ public class ClientConfig {
 	}
 
 	@Bean
-	public SaajSoapMessageFactory saajSoapMessageFactory() {
-		return new SaajSoapMessageFactory();
+	public SaajSoapMessageFactory messageFactory() {
+		SaajSoapMessageFactory factory = new SaajSoapMessageFactory();
+		factory.setSoapVersion(SoapVersion.SOAP_11);
+		factory.afterPropertiesSet();
+		return factory;
 	}
 
 	@Bean

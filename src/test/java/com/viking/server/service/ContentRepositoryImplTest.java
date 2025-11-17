@@ -1,125 +1,108 @@
-package com.viking.server.service; // ВАЖНО: тот же package!
+package com.viking.server.service;
 
-import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.lang.reflect.Field;
-
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
+
+import com.viking.exception.ValidationException;
 
 import jakarta.activation.DataHandler;
-import jakarta.xml.bind.ValidationException;
 
-@SpringBootTest
-public class ContentRepositoryImplTest {
-    
-    @Autowired
-    private ContentRepositoryImpl contentRepository;
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
+import java.io.OutputStream;
 
-    private DataHandler createDataHandler(byte[] data) {
-        return new DataHandler(new ByteArrayDataSource(data, "application/octet-stream"));
+import static org.junit.jupiter.api.Assertions.*;
+
+class ContentRepositoryImplTest {
+
+    private ContentRepositoryImpl repository;
+
+    @BeforeEach
+    void setUp() {
+        repository = new ContentRepositoryImpl();
+        repository.fileStorePath = System.getProperty("java.io.tmpdir");
     }
 
-    private static class ByteArrayDataSource implements jakarta.activation.DataSource {
+    @Test
+    void testValidFile() throws Exception {
+        String name = "goodFile";
+        byte[] data = "Hello World".getBytes();
+        DataHandler handler = new DataHandler(new ByteArrayDataSource(data));
+
+        repository.storeContent(name, handler);
+
+        assertTrue(repository.loadContent(name).exists());
+    }
+
+    @Test
+    void testFileNameValidation() {
+        String name = "плохойЖ";
+        byte[] data = "Hello".getBytes();
+        DataHandler handler = new DataHandler(new ByteArrayDataSource(data));
+
+        ValidationException ex = assertThrows(ValidationException.class,
+                () -> repository.storeContent(name, handler));
+
+        assertTrue(ex.getMessage().contains("forbidden letter"));
+    }
+
+    @Test
+    void testFileSizeExceeded() {
+        String name = "bigFile";
+        byte[] data = new byte[(int) (ContentRepositoryImpl.MAX_FILE_SIZE + 1)];
+        DataHandler handler = new DataHandler(new ByteArrayDataSource(data));
+
+        ValidationException ex = assertThrows(ValidationException.class,
+                () -> repository.storeContent(name, handler));
+
+        assertTrue(ex.getMessage().contains("File exceeded"));
+    }
+
+    @Test
+    void testJsonValidation() {
+        String name = "jsonFile";
+        byte[] data = "{\"key\":123}".getBytes();
+        DataHandler handler = new DataHandler(new ByteArrayDataSource(data));
+
+        ValidationException ex = assertThrows(ValidationException.class,
+                () -> repository.storeContent(name, handler));
+
+        assertTrue(ex.getMessage().contains("valid JSON"));
+    }
+
+    @Test
+    void testVirtualQuotaExceeded() throws Exception {
+        byte[] data = new byte[3 * 1024 * 1024];
+        DataHandler handler1 = new DataHandler(new ByteArrayDataSource(data));
+        DataHandler handler2 = new DataHandler(new ByteArrayDataSource(data));
+        DataHandler handler3 = new DataHandler(new ByteArrayDataSource(data));
+        DataHandler handler4 = new DataHandler(new ByteArrayDataSource(data));
+
+        repository.storeContent("file1", handler1);
+        repository.storeContent("file2", handler2);
+        repository.storeContent("file3", handler3);
+
+        ValidationException ex = assertThrows(ValidationException.class,
+            () -> repository.storeContent("file4", handler4));
+        assertTrue(ex.getMessage().contains("Storage quota exceeded"));
+    }
+
+    // вспомогательный класс
+    static class ByteArrayDataSource implements jakarta.activation.DataSource {
         private final byte[] data;
-        private final String contentType;
 
-        public ByteArrayDataSource(byte[] data, String contentType) {
-            this.data = data;
-            this.contentType = contentType;
-        }
+        ByteArrayDataSource(byte[] data) { this.data = data; }
 
         @Override
-        public InputStream getInputStream() throws IOException {
-            return new java.io.ByteArrayInputStream(data);
-        }
+        public InputStream getInputStream() { return new ByteArrayInputStream(data); }
 
         @Override
-        public OutputStream getOutputStream() throws IOException {
-            throw new IOException("Not Supported");
-        }
+        public OutputStream getOutputStream() { throw new UnsupportedOperationException(); }
 
         @Override
-        public String getContentType() {
-            return contentType;
-        }
+        public String getContentType() { return "application/octet-stream"; }
 
         @Override
-        public String getName() {
-            return "ByteArrayDataSource";
-        }
+        public String getName() { return "ByteArrayDataSource"; }
     }
-
-    @Test
-    void testValidateFileName_WithForbiddenLetter() {
-        assertThrows(ValidationException.class, () -> {
-            contentRepository.validateFileName("файлЖ.txt");
-        });
-    }
-
-    @Test
-    void testValidateFileName_WithoutForbiddenLetter() throws ValidationException {
-        assertDoesNotThrow(() -> {
-            contentRepository.validateFileName("normal_file.txt");
-        });
-    }
-
-    @Test
-    void testValidateFileSize_EmptyFile() {
-        DataHandler emptyDataHandler = createDataHandler(new byte[0]);
-        assertThrows(ValidationException.class, () -> {
-            contentRepository.validateFileSize(emptyDataHandler);
-        });
-    }
-
-    @Test
-    void testValidateFileSize_ValidFile() throws IOException, ValidationException {
-        byte[] validData = "Some valid content".getBytes();
-        DataHandler validDataHandler = createDataHandler(validData);
-        long size = contentRepository.validateFileSize(validDataHandler);
-        assertEquals(validData.length, size);
-    }
-
-    @Test
-    void testValidateNotJSON_WithValidJSON() throws IOException {
-        String json = "{\"name\":\"test\",\"value\":123}";
-        DataHandler jsoDataHandler = createDataHandler(json.getBytes());
-        assertThrows(RuntimeException.class, () -> {
-            contentRepository.validateNotJSON(jsoDataHandler);
-        });
-    }
-
-    @Test 
-    void testValidateNotJSON_WithInvalidJSON() throws IOException {
-        String invalidJson = "This is not JSON";
-        DataHandler nonJsonDataHandler = createDataHandler(invalidJson.getBytes());
-        assertDoesNotThrow(() -> {
-            contentRepository.validateNotJSON(nonJsonDataHandler);
-        });
-    }
-
-    @Test
-    void testValidateNotJSON_WithJSONArray() throws IOException {
-        String jsonArray = "[1, 2, 3]";
-        DataHandler handler = createDataHandler(jsonArray.getBytes());
-        
-        assertThrows(RuntimeException.class, () -> {
-            contentRepository.validateNotJSON(handler);
-        });
-    }
-
-    // @Test
-    // void testValidateDiskSpace_WhenNotEnoughSpace() throws Exception {
-    //     ContentRepositoryImpl repo = new ContentRepositoryImpl();
-    //     Field field = ContentRepositoryImpl.class.getDeclaredField("fieldStorePath");
-    //     field.setAccessible(true);
-    //     field.set(repo, tempDir.toString());
-        
-    // }
 }

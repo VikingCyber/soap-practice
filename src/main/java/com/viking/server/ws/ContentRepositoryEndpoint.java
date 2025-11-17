@@ -4,6 +4,7 @@ package com.viking.server.ws;
 import java.io.File;
 import java.io.IOException;
 
+
 import org.springframework.util.Assert;
 import org.springframework.ws.samples.mtom.schema.LoadContentRequest;
 import org.springframework.ws.samples.mtom.schema.LoadContentResponse;
@@ -15,10 +16,13 @@ import org.springframework.ws.server.endpoint.annotation.PayloadRoot;
 import org.springframework.ws.server.endpoint.annotation.RequestPayload;
 import org.springframework.ws.server.endpoint.annotation.ResponsePayload;
 
+import com.viking.exception.ValidationException;
+import com.viking.exception.ValidationSoapException;
 import com.viking.server.service.ContentRepository;
 
 import jakarta.activation.DataHandler;
 import jakarta.activation.FileDataSource;
+
 
 @Endpoint
 public class ContentRepositoryEndpoint {
@@ -35,7 +39,11 @@ public class ContentRepositoryEndpoint {
     @PayloadRoot(localPart = "StoreContentRequest", namespace = "http://viking/soap/mtom/lab2025")
     @ResponsePayload
     public StoreContentResponse storeContent(@RequestPayload StoreContentRequest request) throws IOException {
-        this.contentRepository.storeContent(request.getName(),  request.getContent());
+        try {
+            this.contentRepository.storeContent(request.getName(), request.getContent());
+        } catch (ValidationException e) {
+            throw new ValidationSoapException(e.getMessage());
+        }
         StoreContentResponse response = this.objectFactory.createStoreContentResponse();
         response.setMessage("Success");
         return response;

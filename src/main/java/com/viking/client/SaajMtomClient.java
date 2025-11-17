@@ -10,6 +10,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
+import org.springframework.boot.WebApplicationType;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
 import org.springframework.util.ClassUtils;
@@ -19,19 +20,24 @@ import org.springframework.ws.samples.mtom.schema.LoadContentRequest;
 import org.springframework.ws.samples.mtom.schema.LoadContentResponse;
 import org.springframework.ws.samples.mtom.schema.ObjectFactory;
 import org.springframework.ws.samples.mtom.schema.StoreContentRequest;
+import org.springframework.ws.soap.client.SoapFaultClientException;
 import org.springframework.ws.soap.saaj.SaajSoapMessageFactory;
 
 import jakarta.activation.DataHandler;
+import jakarta.activation.FileDataSource;
 
 @SpringBootApplication
 public class SaajMtomClient extends WebServiceGatewaySupport{
     public static void main(String[] args) {
-        SpringApplication.run(SaajMtomClient.class, args);
+        SpringApplication app = new SpringApplication(SaajMtomClient.class);
+        app.setWebApplicationType(WebApplicationType.NONE);
+        app.run(args);
     }
 
     @Bean
     CommandLineRunner invoke(SaajMtomClient saajClient) {
         return args -> {
+            saajClient.storeInvalidFile();
             saajClient.storeContent();
             saajClient.loadContent();
         };
@@ -93,5 +99,17 @@ public class SaajMtomClient extends WebServiceGatewaySupport{
             }
         }
         return size;
+    }
+
+    public void storeInvalidFile() {
+        try {
+            StoreContentRequest request = objectFactory.createStoreContentRequest();
+            request.setName("плохойЖ.txt");
+            request.setContent(new DataHandler(new FileDataSource(new File("src/main/resources/Normandi.jpg"))));
+
+            getWebServiceTemplate().marshalSendAndReceive(request);
+        } catch (SoapFaultClientException e) {
+            logger.error("Expected validation error:", e.getFaultStringOrReason());
+        }
     }
 }
