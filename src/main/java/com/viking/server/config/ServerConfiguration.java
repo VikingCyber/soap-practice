@@ -47,9 +47,9 @@ public class ServerConfiguration {
     }
 
     @Bean
-    public SimpleWsdl11Definition contentStore() {
+    public SimpleWsdl11Definition services() {
         SimpleWsdl11Definition definition = new SimpleWsdl11Definition();
-        definition.setWsdl(new ClassPathResource("/contentStore.wsdl"));
+        definition.setWsdl(new ClassPathResource("/services.wsdl"));
         return definition;
     }
 }

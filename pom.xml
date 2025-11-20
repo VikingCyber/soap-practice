@@ -44,6 +44,27 @@
 			<artifactId>spring-boot-starter-test</artifactId>
 			<scope>test</scope>
 		</dependency>
+
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-data-jpa</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>org.springframework.ws</groupId>
+			<artifactId>spring-ws-security</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>com.h2database</groupId>
+			<artifactId>h2</artifactId>
+			<scope>runtime</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>org.flywaydb</groupId>
+			<artifactId>flyway-core</artifactId>
+		</dependency>
 	</dependencies>
 
 	<profiles>
@@ -56,7 +77,8 @@
 		<profile>
 			<id>client</id>
 			<properties>
-				<main.class>com.viking.client.SaajMtomClient</main.class>
+				<spring-boot.run.profiles>client</spring-boot.run.profiles>
+				<main.class>com.viking.client.ClientApp</main.class>
 			</properties>
 		</profile>
 	</profiles>
@@ -73,6 +95,7 @@
 			<plugin>
 				<groupId>com.evolvedbinary.maven.jvnet</groupId>
 				<artifactId>jaxb30-maven-plugin</artifactId>
+				<version>0.16.0</version>
 				<executions>
 					<execution>
 						<goals>

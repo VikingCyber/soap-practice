@@ -20,9 +20,9 @@ import jakarta.activation.DataHandler;
 import jakarta.xml.bind.ValidationException;
 
 @Service
-public class ContentRepositoryImpl implements ContentRepository {
+public class ContentServiceImpl implements ContentService {
     
-    private static final Logger logger = LoggerFactory.getLogger(ContentRepositoryImpl.class);
+    private static final Logger logger = LoggerFactory.getLogger(ContentServiceImpl.class);
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     @Value(value = "#{ systemProperties['java.io.tmpdir'] }")

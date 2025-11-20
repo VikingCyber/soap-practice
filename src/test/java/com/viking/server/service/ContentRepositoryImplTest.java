@@ -7,7 +7,6 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.lang.reflect.Field;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,7 +19,7 @@ import jakarta.xml.bind.ValidationException;
 public class ContentRepositoryImplTest {
     
     @Autowired
-    private ContentRepositoryImpl contentRepository;
+    private ContentServiceImpl contentRepository;
 
     private DataHandler createDataHandler(byte[] data) {
         return new DataHandler(new ByteArrayDataSource(data, "application/octet-stream"));

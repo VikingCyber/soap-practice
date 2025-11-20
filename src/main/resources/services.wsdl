@@ -63,7 +63,7 @@
 	</wsdl:binding>
 	<wsdl:service name="contentStoreHttpPortService">
 		<wsdl:port binding="tns:contentStoreHttpPortSoap11" name="contentStoreHttpPortSoap11">
-			<soap:address location="http://localhost:9080/mtoms-serverr/contentStore"/>
+			<soap:address location="http://localhost:9080/mtom-server/services"/>
 		</wsdl:port>
 	</wsdl:service>
 </wsdl:definitions>

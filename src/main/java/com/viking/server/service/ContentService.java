@@ -5,7 +5,7 @@ import java.io.IOException;
 
 import jakarta.activation.DataHandler;
 
-public interface ContentRepository {
+public interface ContentService {
     File loadContent(String name);
     void storeContent(String name, DataHandler content) throws IOException;
 }

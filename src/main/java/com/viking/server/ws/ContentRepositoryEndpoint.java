@@ -15,7 +15,7 @@ import org.springframework.ws.server.endpoint.annotation.PayloadRoot;
 import org.springframework.ws.server.endpoint.annotation.RequestPayload;
 import org.springframework.ws.server.endpoint.annotation.ResponsePayload;
 
-import com.viking.server.service.ContentRepository;
+import com.viking.server.service.ContentService;
 
 import jakarta.activation.DataHandler;
 import jakarta.activation.FileDataSource;
@@ -23,10 +23,10 @@ import jakarta.activation.FileDataSource;
 @Endpoint
 public class ContentRepositoryEndpoint {
 
-    private ContentRepository contentRepository;
+    private ContentService contentRepository;
     private ObjectFactory objectFactory;
 
-    public ContentRepositoryEndpoint(ContentRepository contentRepository) {
+    public ContentRepositoryEndpoint(ContentService contentRepository) {
         Assert.notNull(contentRepository, "'imageRepository' must not be null");
         this.contentRepository = contentRepository;
         this.objectFactory = new ObjectFactory();
@@ -51,5 +51,5 @@ public class ContentRepositoryEndpoint {
         response.setContent(dataHandler);
         return response;
     }
-    
+
 }
