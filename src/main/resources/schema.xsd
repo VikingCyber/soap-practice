@@ -1,8 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<schema xmlns="http://www.w3.org/2001/XMLSchema" 
+<schema xmlns="http://www.w3.org/2001/XMLSchema"
         xmlns:xmime="http://www.w3.org/2005/05/xmlmime"
         targetNamespace="http://viking/soap/mtom/lab2025"
         elementFormDefault="qualified">
+
+    <!-- ===== Основные операции файлового сервиса ===== -->
 
     <element name="StoreContentRequest">
         <complexType>
@@ -10,10 +12,12 @@
                 <element name="Name" type="string"/>
                 <element name="Content" type="base64Binary"
                          xmime:expectedContentTypes="application/octet-stream"/>
+                <!-- URL, по которому сервер асинхронно уведомит клиента о результате загрузки -->
+                <element name="CallbackUrl" type="string" minOccurs="0"/>
             </sequence>
         </complexType>
     </element>
-    
+
     <element name="StoreContentResponse">
         <complexType>
             <sequence>
@@ -21,7 +25,7 @@
             </sequence>
         </complexType>
     </element>
-    
+
     <element name="LoadContentRequest">
         <complexType>
             <sequence>
@@ -29,7 +33,7 @@
             </sequence>
         </complexType>
     </element>
-    
+
     <element name="LoadContentResponse">
         <complexType>
             <sequence>
@@ -39,4 +43,62 @@
             </sequence>
         </complexType>
     </element>
+
+    <!-- ===== Аптайм сервера ===== -->
+
+    <element name="GetUptimeRequest">
+        <complexType>
+            <sequence/>
+        </complexType>
+    </element>
+
+    <element name="GetUptimeResponse">
+        <complexType>
+            <sequence>
+                <!-- аптайм в секундах -->
+                <element name="UptimeSeconds" type="long"/>
+                <!-- ISO-8601 время старта сервера -->
+                <element name="StartTime" type="string"/>
+            </sequence>
+        </complexType>
+    </element>
+
+    <!-- ===== Последний загруженный файл текущего пользователя ===== -->
+
+    <element name="GetLastUploadedFileRequest">
+        <complexType>
+            <sequence/>
+        </complexType>
+    </element>
+
+    <element name="GetLastUploadedFileResponse">
+        <complexType>
+            <sequence>
+                <element name="Filename" type="string" minOccurs="0"/>
+                <element name="SizeBytes" type="long" minOccurs="0"/>
+                <element name="UploadTime" type="string" minOccurs="0"/>
+                <element name="Status" type="string" minOccurs="0"/>
+                <!-- Причина ошибки/отклонения, если есть -->
+                <element name="ErrorMessage" type="string" minOccurs="0"/>
+            </sequence>
+        </complexType>
+    </element>
+
+    <!-- ===== CSV-выгрузка всех файлов на сервере ===== -->
+
+    <element name="GetFilesCsvRequest">
+        <complexType>
+            <sequence/>
+        </complexType>
+    </element>
+
+    <element name="GetFilesCsvResponse">
+        <complexType>
+            <sequence>
+                <!-- Содержимое CSV-файла в текстовом виде -->
+                <element name="CsvContent" type="string"/>
+            </sequence>
+        </complexType>
+    </element>
+
 </schema>

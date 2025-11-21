@@ -21,6 +21,7 @@ public class UploadedFile {
     private long sizeBytes;
     private LocalDateTime uploadTime;
     private String status;
+    private String errorMessage;
 
     @ManyToOne
     @JoinColumn(name = "user_id")
@@ -64,6 +65,14 @@ public class UploadedFile {
 
     public void setStatus(String status) {
         this.status = status;
+    }
+
+    public String getErrorMessage() {
+        return errorMessage;
+    }
+
+    public void setErrorMessage(String errorMessage) {
+        this.errorMessage = errorMessage;
     }
 
     public User getUser() {

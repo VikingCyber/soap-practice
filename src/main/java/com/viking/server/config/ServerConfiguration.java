@@ -28,7 +28,7 @@ public class ServerConfiguration {
     @Bean
     public Jaxb2Marshaller marshaller() {
         Jaxb2Marshaller marshaller = new Jaxb2Marshaller();
-        marshaller.setContextPath("org.springframework.ws.samples.mtom.schema");
+        marshaller.setContextPath("com.viking.client.ws");
         marshaller.setMtomEnabled(true);
         return marshaller;
     }

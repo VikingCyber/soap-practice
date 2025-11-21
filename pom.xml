@@ -1,138 +1,125 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
-	<modelVersion>4.0.0</modelVersion>
-	<parent>
-		<groupId>org.springframework.boot</groupId>
-		<artifactId>spring-boot-starter-parent</artifactId>
-		<version>3.5.7</version>
-		<relativePath/>
-	</parent>
-	<groupId>com.viking</groupId>
-	<artifactId>soapService</artifactId>
-	<version>0.0.1-SNAPSHOT</version>
-	<name>soapService</name>
-	<description>Soap project with MTOM feature</description>
-	<url/>
-	<licenses>
-		<license/>
-	</licenses>
-	<developers>
-		<developer/>
-	</developers>
-	<scm>
-		<connection/>
-		<developerConnection/>
-		<tag/>
-		<url/>
-	</scm>
-	<properties>
-		<java.version>25</java.version>
-	</properties>
-	<dependencies>
-		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-web</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-web-services</artifactId>
-		</dependency>
+<project xmlns="http://maven.apache.org/POM/4.0.0" 
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 
+                             https://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
 
-		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-test</artifactId>
-			<scope>test</scope>
-		</dependency>
+  <parent>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-parent</artifactId>
+    <version>3.5.7</version>
+    <relativePath/>
+  </parent>
 
-		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-data-jpa</artifactId>
-		</dependency>
+  <groupId>com.viking</groupId>
+  <artifactId>soapService</artifactId>
+  <version>0.0.1-SNAPSHOT</version>
+  <name>soapService</name>
 
-		<dependency>
-			<groupId>org.springframework.ws</groupId>
-			<artifactId>spring-ws-security</artifactId>
-		</dependency>
+  <properties>
+    <java.version>25</java.version>
+  </properties>
 
-		<dependency>
-			<groupId>com.h2database</groupId>
-			<artifactId>h2</artifactId>
-			<scope>runtime</scope>
-		</dependency>
+  <dependencies>
+    <!-- Spring Boot & Web Services -->
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-web</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-web-services</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework.ws</groupId>
+      <artifactId>spring-ws-security</artifactId>
+    </dependency>
 
-		<dependency>
-			<groupId>org.flywaydb</groupId>
-			<artifactId>flyway-core</artifactId>
-		</dependency>
-	</dependencies>
+    <!-- JPA и БД -->
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-data-jpa</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.h2database</groupId>
+      <artifactId>h2</artifactId>
+      <scope>runtime</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.flywaydb</groupId>
+      <artifactId>flyway-core</artifactId>
+    </dependency>
 
-	<profiles>
-		<profile>
-			<id>server</id>
-			<properties>
-				<main.class>com.viking.server.SoapServiceApplication</main.class>
-			</properties>
-		</profile>
-		<profile>
-			<id>client</id>
-			<properties>
-				<spring-boot.run.profiles>client</spring-boot.run.profiles>
-				<main.class>com.viking.client.ClientApp</main.class>
-			</properties>
-		</profile>
-	</profiles>
+    <!-- Тесты -->
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-test</artifactId>
+      <scope>test</scope>
+    </dependency>
 
-	<build>
-		<plugins>
-			<plugin>
-				<groupId>org.springframework.boot</groupId>
-				<artifactId>spring-boot-maven-plugin</artifactId>
-				<configuration>
-					<mainClass>${main.class}</mainClass>
-				</configuration>
-			</plugin>
-			<plugin>
-				<groupId>com.evolvedbinary.maven.jvnet</groupId>
-				<artifactId>jaxb30-maven-plugin</artifactId>
-				<version>0.16.0</version>
-				<executions>
-					<execution>
-						<goals>
-							<goal>generate</goal>
-						</goals>
-					</execution>
-				</executions>
-				<configuration>
-					<schemaLanguage>WSDL</schemaLanguage>
-					<generatePackage>org.springframework.ws.samples.mtom.schema</generatePackage>
-					<schemas>
-						<schema>
-							<url>${wsdl}</url>
-						</schema>
-					</schemas>
-					<addCompileSourceRoot>true</addCompileSourceRoot>
-				</configuration>
-			</plugin>
-			<plugin>
-				<groupId>org.codehaus.mojo</groupId>
-				<artifactId>build-helper-maven-plugin</artifactId>
-				<executions>
-					<execution>
-						<id>add-source</id>
-						<phase>process-sources</phase>
-						<goals>
-							<goal>add-source</goal>
-						</goals>
-						<configuration>
-							<sources>
-								<source>target/generated-sources/xjc</source>
-							</sources>
-						</configuration>
-					</execution>
-				</executions>
-			</plugin>
-		</plugins>
-	</build>
+	<dependency>
+		<groupId>org.junit.jupiter</groupId>
+		<artifactId>junit-jupiter</artifactId>
+		<version>5.10.0</version> 
+		<scope>test</scope>
+	</dependency>
+
+  </dependencies>
+
+  <build>
+    <plugins>
+      <!-- Spring Boot plugin -->
+      <plugin>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-maven-plugin</artifactId>
+        <configuration>
+          <mainClass>${main.class}</mainClass>
+        </configuration>
+      </plugin>
+
+      <!-- ЕДИНСТВЕННЫЙ JAXB генератор -->
+      <plugin>
+			<groupId>com.evolvedbinary.maven.jvnet</groupId>
+			<artifactId>jaxb30-maven-plugin</artifactId>
+			<version>0.16.0</version>
+			<executions>
+				<execution>
+					<id>generate-xsd</id>
+					<goals>
+						<goal>generate</goal>
+					</goals>
+				</execution>
+			</executions>
+			<configuration>
+				<schemaLanguage>XMLSCHEMA</schemaLanguage>
+				<schemas>
+					<schema>
+						<url>file://${project.basedir}/src/main/resources/schema.xsd</url>
+					</schema>
+				</schemas>
+				<generatePackage>com.viking.client.ws</generatePackage>
+				<addCompileSourceRoot>true</addCompileSourceRoot>
+			</configuration>
+		</plugin>
+
+
+    </plugins>
+  </build>
+
+  <profiles>
+    <profile>
+      <id>server</id>
+      <properties>
+        <main.class>com.viking.server.SoapServiceApplication</main.class>
+      </properties>
+    </profile>
+    <profile>
+      <id>client</id>
+      <properties>
+        <spring-boot.run.profiles>client</spring-boot.run.profiles>
+        <main.class>com.viking.client.ClientApp</main.class>
+      </properties>
+    </profile>
+  </profiles>
 
 </project>

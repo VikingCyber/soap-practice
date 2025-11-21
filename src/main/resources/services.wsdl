@@ -4,66 +4,155 @@
                   xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/"
                   xmlns:tns="http://viking/soap/mtom/lab2025"
                   targetNamespace="http://viking/soap/mtom/lab2025">
-	<wsdl:types>
-        <xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema">
-            <xsd:import namespace="http://viking/soap/mtom/lab2025" 
-                    schemaLocation="schema.xsd"/>
+
+    <wsdl:types>
+        <xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+                    targetNamespace="http://viking/soap/mtom/lab2025"
+                    elementFormDefault="qualified">
+            <xsd:include schemaLocation="schema.xsd"/>
         </xsd:schema>
     </wsdl:types>
-	<wsdl:message name="StoreContentResponse">
-		<wsdl:part element="tns:StoreContentResponse" name="StoreContentResponse">
-		</wsdl:part>
-	</wsdl:message>
-	<wsdl:message name="StoreContentRequest">
-		<wsdl:part element="tns:StoreContentRequest" name="StoreContentRequest">
-		</wsdl:part>
-	</wsdl:message>
-	<wsdl:message name="LoadContentResponse">
-		<wsdl:part element="tns:LoadContentResponse" name="LoadContentResponse">
-		</wsdl:part>
-	</wsdl:message>
-	<wsdl:message name="LoadContentRequest">
-		<wsdl:part element="tns:LoadContentRequest" name="LoadContentRequest">
-		</wsdl:part>
-	</wsdl:message>
-	<wsdl:portType name="contentStoreHttpPort">
-		<wsdl:operation name="StoreContent">
-			<wsdl:input message="tns:StoreContentRequest" name="StoreContentRequest">
-			</wsdl:input>
-			<wsdl:output message="tns:StoreContentResponse" name="StoreContentResponse">
-			</wsdl:output>
-		</wsdl:operation>
-		<wsdl:operation name="LoadContent">
-			<wsdl:input message="tns:LoadContentRequest" name="LoadContentRequest">
-			</wsdl:input>
-			<wsdl:output message="tns:LoadContentResponse" name="LoadContentResponse">
-			</wsdl:output>
-		</wsdl:operation>
-	</wsdl:portType>
-	<wsdl:binding name="contentStoreHttpPortSoap11" type="tns:contentStoreHttpPort">
-		<soap:binding style="document" transport="http://schemas.xmlsoap.org/soap/http"/>
-		<wsdl:operation name="StoreContent">
-			<soap:operation soapAction=""/>
-			<wsdl:input name="StoreContentRequest">
-				<soap:body use="literal"/>
-			</wsdl:input>
-			<wsdl:output name="StoreContentResponse">
-				<soap:body use="literal"/>
-			</wsdl:output>
-		</wsdl:operation>
-		<wsdl:operation name="LoadContent">
-			<soap:operation soapAction=""/>
-			<wsdl:input name="LoadContentRequest">
-				<soap:body use="literal"/>
-			</wsdl:input>
-			<wsdl:output name="LoadContentResponse">
-				<soap:body use="literal"/>
-			</wsdl:output>
-		</wsdl:operation>
-	</wsdl:binding>
-	<wsdl:service name="contentStoreHttpPortService">
-		<wsdl:port binding="tns:contentStoreHttpPortSoap11" name="contentStoreHttpPortSoap11">
-			<soap:address location="http://localhost:9080/mtom-server/services"/>
-		</wsdl:port>
-	</wsdl:service>
+
+    <!-- Сообщения для операций Store/Load -->
+
+    <wsdl:message name="StoreContentResponse">
+        <wsdl:part element="tns:StoreContentResponse" name="StoreContentResponse"/>
+    </wsdl:message>
+
+    <wsdl:message name="StoreContentRequest">
+        <wsdl:part element="tns:StoreContentRequest" name="StoreContentRequest"/>
+    </wsdl:message>
+
+    <wsdl:message name="LoadContentResponse">
+        <wsdl:part element="tns:LoadContentResponse" name="LoadContentResponse"/>
+    </wsdl:message>
+
+    <wsdl:message name="LoadContentRequest">
+        <wsdl:part element="tns:LoadContentRequest" name="LoadContentRequest"/>
+    </wsdl:message>
+
+    <!-- Сообщения для аптайма -->
+
+    <wsdl:message name="GetUptimeRequest">
+        <wsdl:part element="tns:GetUptimeRequest" name="GetUptimeRequest"/>
+    </wsdl:message>
+
+    <wsdl:message name="GetUptimeResponse">
+        <wsdl:part element="tns:GetUptimeResponse" name="GetUptimeResponse"/>
+    </wsdl:message>
+
+    <!-- Сообщения для последнего файла текущего пользователя -->
+
+    <wsdl:message name="GetLastUploadedFileRequest">
+        <wsdl:part element="tns:GetLastUploadedFileRequest" name="GetLastUploadedFileRequest"/>
+    </wsdl:message>
+
+    <wsdl:message name="GetLastUploadedFileResponse">
+        <wsdl:part element="tns:GetLastUploadedFileResponse" name="GetLastUploadedFileResponse"/>
+    </wsdl:message>
+
+    <!-- Сообщения для CSV выгрузки -->
+
+    <wsdl:message name="GetFilesCsvRequest">
+        <wsdl:part element="tns:GetFilesCsvRequest" name="GetFilesCsvRequest"/>
+    </wsdl:message>
+
+    <wsdl:message name="GetFilesCsvResponse">
+        <wsdl:part element="tns:GetFilesCsvResponse" name="GetFilesCsvResponse"/>
+    </wsdl:message>
+
+    <!-- Порт-тип сервиса -->
+
+    <wsdl:portType name="contentStoreHttpPort">
+        <wsdl:operation name="StoreContent">
+            <wsdl:input message="tns:StoreContentRequest" name="StoreContentRequest"/>
+            <wsdl:output message="tns:StoreContentResponse" name="StoreContentResponse"/>
+        </wsdl:operation>
+
+        <wsdl:operation name="LoadContent">
+            <wsdl:input message="tns:LoadContentRequest" name="LoadContentRequest"/>
+            <wsdl:output message="tns:LoadContentResponse" name="LoadContentResponse"/>
+        </wsdl:operation>
+
+        <wsdl:operation name="GetUptime">
+            <wsdl:input message="tns:GetUptimeRequest" name="GetUptimeRequest"/>
+            <wsdl:output message="tns:GetUptimeResponse" name="GetUptimeResponse"/>
+        </wsdl:operation>
+
+        <wsdl:operation name="GetLastUploadedFile">
+            <wsdl:input message="tns:GetLastUploadedFileRequest" name="GetLastUploadedFileRequest"/>
+            <wsdl:output message="tns:GetLastUploadedFileResponse" name="GetLastUploadedFileResponse"/>
+        </wsdl:operation>
+
+        <wsdl:operation name="GetFilesCsv">
+            <wsdl:input message="tns:GetFilesCsvRequest" name="GetFilesCsvRequest"/>
+            <wsdl:output message="tns:GetFilesCsvResponse" name="GetFilesCsvResponse"/>
+        </wsdl:operation>
+    </wsdl:portType>
+
+    <!-- Привязка к SOAP 1.1 -->
+
+    <wsdl:binding name="contentStoreHttpPortSoap11" type="tns:contentStoreHttpPort">
+        <soap:binding style="document" transport="http://schemas.xmlsoap.org/soap/http"/>
+
+        <wsdl:operation name="StoreContent">
+            <soap:operation soapAction="StoreContent"/>
+            <wsdl:input name="StoreContentRequest">
+                <soap:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output name="StoreContentResponse">
+                <soap:body use="literal"/>
+            </wsdl:output>
+        </wsdl:operation>
+
+        <wsdl:operation name="LoadContent">
+            <soap:operation soapAction="LoadContent"/>
+            <wsdl:input name="LoadContentRequest">
+                <soap:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output name="LoadContentResponse">
+                <soap:body use="literal"/>
+            </wsdl:output>
+        </wsdl:operation>
+
+        <wsdl:operation name="GetUptime">
+            <soap:operation soapAction="GetUptime"/>
+            <wsdl:input name="GetUptimeRequest">
+                <soap:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output name="GetUptimeResponse">
+                <soap:body use="literal"/>
+            </wsdl:output>
+        </wsdl:operation>
+
+        <wsdl:operation name="GetLastUploadedFile">
+            <soap:operation soapAction="GetLastUploadedFile"/>
+            <wsdl:input name="GetLastUploadedFileRequest">
+                <soap:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output name="GetLastUploadedFileResponse">
+                <soap:body use="literal"/>
+            </wsdl:output>
+        </wsdl:operation>
+
+        <wsdl:operation name="GetFilesCsv">
+            <soap:operation soapAction="GetFilesCsv"/>
+            <wsdl:input name="GetFilesCsvRequest">
+                <soap:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output name="GetFilesCsvResponse">
+                <soap:body use="literal"/>
+            </wsdl:output>
+        </wsdl:operation>
+    </wsdl:binding>
+
+    <!-- Сервис и адрес -->
+
+    <wsdl:service name="contentStoreHttpPortService">
+        <wsdl:port binding="tns:contentStoreHttpPortSoap11" name="contentStoreHttpPortSoap11">
+            <!-- фактический порт сервера: 8080 -->
+            <soap:address location="http://localhost:8080/mtom-server/services"/>
+        </wsdl:port>
+    </wsdl:service>
+
 </wsdl:definitions>

@@ -6,3 +6,4 @@ spring:
 soap:
   client:
     uri: http://localhost:8080/mtom-server/services
+    callback-url: http://localhost:8081/upload-status
