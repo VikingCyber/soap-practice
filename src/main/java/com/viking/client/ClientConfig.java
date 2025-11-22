@@ -106,9 +106,6 @@ public class ClientConfig {
         };
     }
 
-
-
-
     @Bean
     public WebServiceTemplate webServiceTemplate(
             SaajSoapMessageFactory messageFactory,
