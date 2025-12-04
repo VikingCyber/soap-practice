@@ -129,8 +129,13 @@ public class ContentRepositoryEndpoint {
 
     @PayloadRoot(localPart = "GetLastUploadedFileRequest", namespace = "http://viking/soap/mtom/lab2025")
     @ResponsePayload
-    public GetLastUploadedFileResponse getLastUploadedFile(Principal principal) {
-        String username = principal.getName();
+    public GetLastUploadedFileResponse getLastUploadedFile(@RequestPayload GetLastUploadedFileRequest request,
+                                                          MessageContext messageContext) throws IOException {
+        String username = extractUsername(messageContext);
+        if (username == null) {
+            throw new IOException("Username not found in SOAP message");
+        }
+
         GetLastUploadedFileResponse response = objectFactory.createGetLastUploadedFileResponse();
 
         UploadedFile file = contentService.getLastUploadedFile(username);

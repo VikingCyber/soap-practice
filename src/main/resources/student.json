@@ -1,0 +1,10 @@
+{
+  "name": "Vladimir",
+  "age": 21,
+  "isStudent": true,
+  "skills": ["java", "spring", "postgres"],
+  "details": {
+    "active": true,
+    "score": 42
+  }
+}
