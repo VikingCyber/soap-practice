@@ -12,12 +12,8 @@ import org.springframework.ws.server.endpoint.annotation.Endpoint;
 import org.springframework.ws.server.endpoint.annotation.PayloadRoot;
 import org.springframework.ws.server.endpoint.annotation.RequestPayload;
 import org.springframework.ws.server.endpoint.annotation.ResponsePayload;
-import org.springframework.ws.soap.SoapMessage;
-import org.springframework.ws.soap.SoapHeader;
 import org.springframework.ws.soap.saaj.SaajSoapMessage;
 import jakarta.xml.soap.SOAPMessage;
-import jakarta.xml.soap.SOAPHeader;
-import jakarta.xml.soap.SOAPElement;
 
 import java.io.File;
 import java.io.IOException;
@@ -52,7 +48,22 @@ public class ContentRepositoryEndpoint {
             }
             logger.info("Authenticated username: {}", username);
 
-            contentService.storeContent(username, request.getName(), request.getContent(), request.getCallbackUrl());
+            // Get DataHandler - prefer direct extraction from SOAP message for MTOM attachments
+            // because JAXB unmarshaller sometimes doesn't properly link XOP references to attachments
+            DataHandler content = extractAttachmentFromSoapMessage(messageContext, request);
+            if (content == null) {
+                // Fallback to unmarshalled DataHandler
+                content = request.getContent();
+                logger.info("Using DataHandler from unmarshalled request");
+            } else {
+                logger.info("Using DataHandler extracted directly from SOAP message attachment");
+            }
+            
+            if (content == null) {
+                throw new IOException("No attachment found in SOAP message");
+            }
+
+            contentService.storeContent(username, request.getName(), content, request.getCallbackUrl());
 
             StoreContentResponse response = objectFactory.createStoreContentResponse();
             response.setMessage("Success");
@@ -61,6 +72,37 @@ public class ContentRepositoryEndpoint {
             // Clean up ThreadLocal after request processing
             com.viking.server.security.DatabaseUsernameTokenValidator.clearCurrentUsername();
         }
+    }
+    
+    private DataHandler extractAttachmentFromSoapMessage(MessageContext messageContext, StoreContentRequest request) {
+        if (!(messageContext.getRequest() instanceof SaajSoapMessage saaj)) {
+            return null;
+        }
+        
+        try {
+            SOAPMessage soapMessage = saaj.getSaajMessage();
+            
+            // Extract Content-ID from XOP reference in the request
+            // The href in XOP:Include looks like "cid:df62fe48-0ea2-401b-bcac-5e49ffa48978@viking"
+            String contentId = null;
+            if (request.getContent() != null) {
+                // Try to get Content-ID from the DataHandler's name/contentType
+                // Or we can search for it in attachments
+            }
+            
+            // Search for attachment by Content-ID or just take the first one
+            @SuppressWarnings("unchecked")
+            java.util.Iterator<jakarta.xml.soap.AttachmentPart> it = soapMessage.getAttachments();
+            if (it.hasNext()) {
+                jakarta.xml.soap.AttachmentPart attachment = it.next();
+                logger.info("Found attachment with Content-ID: {}", attachment.getContentId());
+                return attachment.getDataHandler();
+            }
+        } catch (Exception e) {
+            logger.warn("Failed to extract attachment from SOAP message: {}", e.getMessage());
+        }
+        
+        return null;
     }
 
     @PayloadRoot(localPart = "LoadContentRequest", namespace = "http://viking/soap/mtom/lab2025")
@@ -114,165 +156,25 @@ public class ContentRepositoryEndpoint {
     }
     
     private String extractUsername(MessageContext messageContext) {
-        logger.info("Attempting to extract username from MessageContext");
-        
-        // First, try to get username from ThreadLocal (set by DatabaseUsernameTokenValidator)
+        // Username is stored by DatabaseUsernameTokenValidator in ThreadLocal
         String threadLocalUsername = com.viking.server.security.DatabaseUsernameTokenValidator.getCurrentUsername();
         if (threadLocalUsername != null && !threadLocalUsername.isEmpty()) {
-            logger.info("Found username in ThreadLocal: {}", threadLocalUsername);
             return threadLocalUsername;
         }
-        
-        // Log all properties in MessageContext for debugging
-        String[] propertyNames = messageContext.getPropertyNames();
-        logger.info("MessageContext has {} properties", propertyNames.length);
-        for (String propName : propertyNames) {
-            logger.info("MessageContext property: {} = {}", propName, messageContext.getProperty(propName));
-        }
-        
-        // Try to get Principal from MessageContext (set by Wss4jSecurityInterceptor after validation)
+
+        // Fallback to Principal if available
         Principal principal = (Principal) messageContext.getProperty("org.springframework.ws.soap.security.user");
         if (principal != null) {
-            logger.info("Found Principal in MessageContext: {}", principal.getName());
             return principal.getName();
         }
-        
-        // Try to get username directly from MessageContext property
+
+        // Last attempt: username property (depends on interceptor configuration)
         String username = (String) messageContext.getProperty("org.springframework.ws.soap.security.username");
         if (username != null && !username.isEmpty()) {
-            logger.info("Found username in MessageContext property: {}", username);
             return username;
         }
-        
-        // Try using SAAJ API directly
-        if (messageContext.getRequest() instanceof SaajSoapMessage) {
-            SaajSoapMessage saajMessage = (SaajSoapMessage) messageContext.getRequest();
-            try {
-                SOAPMessage soapMessage = saajMessage.getSaajMessage();
-                SOAPHeader soapHeader = soapMessage.getSOAPHeader();
-                if (soapHeader != null) {
-                    logger.debug("SOAP header found, searching for Username element");
-                    String saajUsername = extractUsernameFromSAAJ(soapHeader);
-                    if (saajUsername != null && !saajUsername.isEmpty()) {
-                        logger.info("Extracted username using SAAJ API: {}", saajUsername);
-                        return saajUsername;
-                    }
-                }
-            } catch (Exception e) {
-                logger.warn("Failed to extract username using SAAJ API: {}", e.getMessage());
-            }
-        }
-        
-        // Fallback: extract from SOAP message using DOM traversal
-        if (messageContext.getRequest() instanceof SoapMessage) {
-            SoapMessage soapMessage = (SoapMessage) messageContext.getRequest();
-            try {
-                // Get the SOAP envelope as DOM
-                javax.xml.transform.Source source = soapMessage.getEnvelope().getSource();
-                if (source instanceof javax.xml.transform.dom.DOMSource) {
-                    javax.xml.transform.dom.DOMSource domSource = (javax.xml.transform.dom.DOMSource) source;
-                    org.w3c.dom.Node node = domSource.getNode();
-                    if (node != null) {
-                        org.w3c.dom.Document doc = node.getNodeType() == org.w3c.dom.Node.DOCUMENT_NODE 
-                            ? (org.w3c.dom.Document) node 
-                            : node.getOwnerDocument();
-                        if (doc != null) {
-                            // Try XPath first
-                            try {
-                                javax.xml.xpath.XPathFactory xPathFactory = javax.xml.xpath.XPathFactory.newInstance();
-                                javax.xml.xpath.XPath xpath = xPathFactory.newXPath();
-                                xpath.setNamespaceContext(new javax.xml.namespace.NamespaceContext() {
-                                    @Override
-                                    public String getNamespaceURI(String prefix) {
-                                        if ("wsse".equals(prefix)) {
-                                            return "http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd";
-                                        }
-                                        return null;
-                                    }
-                                    
-                                    @Override
-                                    public String getPrefix(String namespaceURI) {
-                                        return null;
-                                    }
-                                    
-                                    @Override
-                                    public java.util.Iterator<String> getPrefixes(String namespaceURI) {
-                                        return null;
-                                    }
-                                });
-                                String extractedUsername = xpath.evaluate("//wsse:Username", doc);
-                                if (extractedUsername != null && !extractedUsername.isEmpty()) {
-                                    logger.info("Extracted username using XPath: {}", extractedUsername);
-                                    return extractedUsername;
-                                }
-                            } catch (Exception xpathEx) {
-                                logger.debug("XPath extraction failed: {}", xpathEx.getMessage());
-                            }
-                            
-                            // Fallback: use DOM traversal
-                            String domUsername = findUsernameInDOM(doc);
-                            if (domUsername != null && !domUsername.isEmpty()) {
-                                logger.info("Extracted username using DOM traversal: {}", domUsername);
-                                return domUsername;
-                            }
-                        }
-                    }
-                }
-            } catch (Exception e) {
-                logger.warn("Failed to extract username from SOAP message: {}", e.getMessage(), e);
-            }
-        }
-        
-        logger.error("Could not extract username from SOAP message using any method");
-        return null;
-    }
-    
-    private String extractUsernameFromSAAJ(SOAPHeader soapHeader) {
-        try {
-            // Search for Security element
-            java.util.Iterator<?> headerElements = soapHeader.getChildElements();
-            while (headerElements.hasNext()) {
-                Object element = headerElements.next();
-                if (element instanceof SOAPElement) {
-                    SOAPElement soapElement = (SOAPElement) element;
-                    String localName = soapElement.getLocalName();
-                    String namespaceURI = soapElement.getNamespaceURI();
-                    
-                    logger.debug("Found header element: {} in namespace {}", localName, namespaceURI);
-                    
-                    // Check if this is a Security element
-                    if ("Security".equals(localName) && 
-                        "http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd".equals(namespaceURI)) {
-                        // Search for UsernameToken
-                        java.util.Iterator<?> securityChildren = soapElement.getChildElements();
-                        while (securityChildren.hasNext()) {
-                            Object child = securityChildren.next();
-                            if (child instanceof SOAPElement) {
-                                SOAPElement childElement = (SOAPElement) child;
-                                if ("UsernameToken".equals(childElement.getLocalName())) {
-                                    // Search for Username
-                                    java.util.Iterator<?> tokenChildren = childElement.getChildElements();
-                                    while (tokenChildren.hasNext()) {
-                                        Object tokenChild = tokenChildren.next();
-                                        if (tokenChild instanceof SOAPElement) {
-                                            SOAPElement usernameElement = (SOAPElement) tokenChild;
-                                            if ("Username".equals(usernameElement.getLocalName())) {
-                                                String username = usernameElement.getValue();
-                                                if (username != null && !username.trim().isEmpty()) {
-                                                    return username.trim();
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        } catch (Exception e) {
-            logger.warn("Error extracting username from SAAJ header: {}", e.getMessage());
-        }
+
+        logger.warn("Username not available in ThreadLocal or MessageContext properties");
         return null;
     }
     

@@ -64,6 +64,8 @@ public class ContentServiceImpl implements ContentService {
     @Override
     @Transactional
     public void storeContent(String username, String name, DataHandler content, String callbackUrl) throws IOException {
+        logger.info("storeContent invoked. username={}, filename={}, dataHandler={}",
+                username, name, content != null ? content.getClass().getName() : "null");
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new IOException("User not found: " + username));
         
@@ -124,6 +126,7 @@ public class ContentServiceImpl implements ContentService {
         byte[] buffer = new byte[8192];
         final long MAX_SIZE = 3 * 1024 * 1024;
         
+        logger.info("Reading attachment via DataHandler: {}", content != null ? content.getClass().getName() : "null");
         java.io.ByteArrayOutputStream baos = new java.io.ByteArrayOutputStream();
         try (InputStream in = content.getInputStream()) {
             int bytesRead;
@@ -137,6 +140,7 @@ public class ContentServiceImpl implements ContentService {
         }
         
         byte[] fileBytes = baos.toByteArray();
+        logger.info("Finished reading attachment. Total bytes read={}", fileBytes.length);
         if (fileBytes.length == 0) {
             throw new ValidationException("File is empty.");
         }

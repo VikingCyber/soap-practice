@@ -68,11 +68,15 @@ public class SaajMtomClient {
             logger.error("File does not exist or is not a file: {}", file);
             return false;
         }
+        logger.info("Preparing MTOM upload. name={}, size={} bytes, path={}",
+                file.getName(), file.length(), file.getAbsolutePath());
         
         try {
             StoreContentRequest storeContentRequest = objectFactory.createStoreContentRequest();
             storeContentRequest.setName(file.getName());
-            storeContentRequest.setContent(new DataHandler(new FileDataSource(file)));
+            DataHandler handler = new DataHandler(new FileDataSource(file));
+            logger.debug("Client DataHandler implementation: {}", handler.getClass().getName());
+            storeContentRequest.setContent(handler);
             storeContentRequest.setCallbackUrl(clientCallbackUrl);
 
             stopWatch.start("store");

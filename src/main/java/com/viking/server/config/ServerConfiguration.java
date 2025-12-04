@@ -52,4 +52,5 @@ public class ServerConfiguration {
         definition.setWsdl(new ClassPathResource("/services.wsdl"));
         return definition;
     }
+
 }
