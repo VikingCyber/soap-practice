@@ -91,7 +91,6 @@ public class ContentRepositoryEndpoint {
             }
             
             // Search for attachment by Content-ID or just take the first one
-            @SuppressWarnings("unchecked")
             java.util.Iterator<jakarta.xml.soap.AttachmentPart> it = soapMessage.getAttachments();
             if (it.hasNext()) {
                 jakarta.xml.soap.AttachmentPart attachment = it.next();
